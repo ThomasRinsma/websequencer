@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Melody thingy</title>
+<style type="text/css">
+#wrapper {
+	max-width: 800px;
+}
+#inputs label {
+	width: 100px;
+	float: left;
+	text-align: right;
+}
+#inputs input {
+	float: right;
+	width: 150px;
+}
+#inputs {
+	width: 260px;
+}
+.blockblack {
+	border: 2px solid black;
+	width: 10px;
+	height: 10px;
+	background-color: #000;
+	float: left;
+	margin-left: 5px;
+}
+.blockgrey {
+	border: 2px solid black;
+	width: 10px;
+	height: 10px;
+	background-color: #AAA;
+	float: left;
+	margin-left: 5px;
+}
+.blockwhite {
+	border: 2px solid black;
+	width: 10px;
+	height: 10px;
+	background-color: #fff;
+	float: left;
+	margin-left: 5px;
+}
+.blockhidden {
+	display: none;
+}
+.clock {
+	margin: 0;
+	padding: 0;
+	margin-left: 170px;
+	font-size: 25px;
+	font-weight: bolder;
+}
+</style>
+<script type="text/javascript" src="Tone.min.js"></script>
+<script type="text/javascript">
+var timer;
+var clock = 0;
+var clockSpeed = 500;
+
+var rhythmlength = 8;
+var melodylength = 8;
+
+var rhythmpattern = [1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 0];
+var melodypattern = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+var numcolors = 12;
+var colors = ["white","yellow","tomato","orange","red","darkred","green","darkgreen","cyan","blue","darkblue","purple","indigo"];
+
+// sound stuff
+var synth;
+var kickPlayer;
+var snarePlayer;
+var hihatPlayer;
+
+
+function updateVisuals() {
+	rhythmdiv = document.getElementById('rhythm');
+	cells = rhythmdiv.children;
+	for (var j = 0; j < cells.length; ++j) {
+		if (j < rhythmlength) {
+			switch(rhythmpattern[j]) {
+				case 0:
+					cells[j].className = "blockwhite";
+					break; 
+				case 1:
+					cells[j].className = "blockblack";
+					break; 
+				case 2:
+					cells[j].className = "blockgrey";
+					break; 
+			}
+		} else {
+			cells[j].className = "blockhidden";
+		}
+	}
+
+	melodydiv = document.getElementById('melody');
+	cells = melodydiv.children;
+	for (var j = 0; j < cells.length; ++j) {
+		if (j < melodylength) {
+			cells[j].className = melodypattern[j] ? "blockblack" : "blockwhite";
+		} else {
+			cells[j].className = "blockhidden";
+		}
+	}
+}
+
+function rhythmLengthChange() {
+	rhythmlength = document.getElementById('length1').value;
+	updateVisuals();
+}
+
+function melodyLengthChange() {
+	melodylength = document.getElementById('length2').value;
+	updateVisuals();
+}
+
+
+function tickClock() {
+	clock++;
+
+	margin = 2 + (10 + 5 + 2 + 2) * (clock % rhythmlength);
+	document.getElementById('clock1').style.marginLeft = margin + 'px';
+
+	margin = 2 + (10 + 5 + 2 + 2) * (clock % melodylength);
+	document.getElementById('clock2').style.marginLeft = margin + 'px';
+
+
+	
+	// Play rhythm sound
+	hihatPlayer.start();
+	switch (rhythmpattern[clock % rhythmlength]) {
+		case 1:
+			kickPlayer.start();
+			break;
+		case 2:
+			snarePlayer.start();
+			break;
+
+	}
+
+
+	// Play melody sound
+	note = melodypattern[clock % melodylength];
+
+	if (note > 0) {
+		notes = ["A4","A#4","B4","C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4"];
+		synth = new Tone.Synth().toMaster();
+		synth.triggerAttackRelease(notes[note - 1], "8n");
+		
+	}
+
+
+	
+
+}
+
+function resetClock() {
+	clock = -1; // will be 0 next tick
+}
+
+function resetMelody() {
+	melodypattern = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	melodydiv = document.getElementById('melody');
+	blockdivs = melodydiv.children;
+	for (i = 0; i < blockdivs.length; ++i) {
+		blockdivs[i].style.backgroundColor = colors[melodypattern[i]];
+	}
+}
+
+function melodyBlockClick() {
+	nr = this.id.substr(5);
+	
+	melodypattern[nr]++;
+	if (melodypattern[nr] >= numcolors) {
+		melodypattern[nr] = 0;
+	}
+	console.log("clicked");
+	this.style.backgroundColor = colors[melodypattern[nr] % numcolors];
+}
+
+function speedChange() {
+	speed = document.getElementById('speed').value;
+
+	clockSpeed = (60.0 / speed) * 1000.0;
+
+	clearInterval(timer);
+	timer = window.setInterval(tickClock, clockSpeed);
+
+}
+
+var loadedSounds = 0;
+function soundLoaded() {
+
+	loadedSounds++;
+
+	if (loadedSounds == 3) {
+		console.log("sounds loaded");
+		initRest();
+	}
+}
+
+function initialSetup() {
+	kickPlayer = new Tone.Player("sounds/kick.wav", soundLoaded).toMaster();
+	snarePlayer = new Tone.Player("sounds/snare.wav", soundLoaded).toMaster();
+	hihatPlayer = new Tone.Player("sounds/hihat.wav", soundLoaded).toMaster();
+}
+
+function initRest() {
+	// Add event listeners
+	melodydiv = document.getElementById('melody');
+	blockdivs = melodydiv.children;
+	for (i = 0; i < blockdivs.length; ++i) {
+		blockdivs[i].addEventListener("click", melodyBlockClick);
+	}
+
+	// start clock
+	clock = 0;
+	timer = window.setInterval(tickClock, clockSpeed);
+
+	updateVisuals();
+}
+</script>
+</head>
+<body onload="initialSetup()">
+<div id="wrapper">
+
+	<button onclick="resetClock()">Reset clock</button>
+	<button onclick="resetMelody()">Reset melody</button>
+	<br /><br />
+
+	<label>rhythm length</label>
+	<input type="range" min="4" max="24" value="8" class="slider" id="length1" oninput="rhythmLengthChange()"><br />
+
+	<label>melody length</label>
+	<input type="range" min="4" max="24" value="8" class="slider" id="length2" oninput="melodyLengthChange()"><br />
+
+	<label>speed</label>
+	<input type="range" min="30" max="480" value="120" class="slider" id="speed" oninput="speedChange()"><br />
+
+
+	<hr />
+	<br />
+
+	<div id="rhythm">
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+		<div class="blockhidden"></div>
+	</div>
+	<br />
+	<div id="clock1" class="clock">&uarr;</div>
+	<div id="melody">
+		<div class="blockhidden" id="block0"></div>
+		<div class="blockhidden" id="block1"></div>
+		<div class="blockhidden" id="block2"></div>
+		<div class="blockhidden" id="block3"></div>
+		<div class="blockhidden" id="block4"></div>
+		<div class="blockhidden" id="block5"></div>
+		<div class="blockhidden" id="block6"></div>
+		<div class="blockhidden" id="block7"></div>
+		<div class="blockhidden" id="block8"></div>
+		<div class="blockhidden" id="block9"></div>
+		<div class="blockhidden" id="block10"></div>
+		<div class="blockhidden" id="block11"></div>
+		<div class="blockhidden" id="block12"></div>
+		<div class="blockhidden" id="block13"></div>
+		<div class="blockhidden" id="block14"></div>
+		<div class="blockhidden" id="block15"></div>
+		<div class="blockhidden" id="block16"></div>
+		<div class="blockhidden" id="block17"></div>
+		<div class="blockhidden" id="block18"></div>
+		<div class="blockhidden" id="block19"></div>
+		<div class="blockhidden" id="block20"></div>
+		<div class="blockhidden" id="block21"></div>
+		<div class="blockhidden" id="block22"></div>
+		<div class="blockhidden" id="block23"></div>
+	</div>
+	<br />
+	<div id="clock2" class="clock">&uarr;</div>
+
+
+</div>
+</body>
+</html>
