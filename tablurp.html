@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tablurp v2.0</title>
+<style type="text/css">
+#wrapper {
+	max-width: 800px;
+}
+
+#bpm {
+	width: 40px;
+}
+
+#measure {
+	width: 40px;
+}
+
+textarea {
+	width: 400px;
+}
+
+</style>
+<script type="text/javascript" src="Tone.min.js"></script>
+<script type="text/javascript">
+var clickPlayer;
+var clock = 0;
+var playing = false;
+var bpm;
+
+// the current melody and rhythm, as arrays
+var melodyArr = [];
+var rhythmArr = [];
+
+function initialSetup() {
+	// load click sound
+	clickPlayer = new Tone.Player("sounds/snare.wav").toMaster();
+}
+
+// Helper function
+function playNote(note, sixteenths) {
+	var synth = new Tone.Synth().toMaster();
+	synth.triggerAttackRelease(note, "0:0:" + sixteenths);
+}
+
+function tickClock() {
+	// play click sound every 4 ticks
+	if (clock % 4 == 0) {
+		clickPlayer.start();
+	}
+
+	// Play the note
+	note = melodyArr[clock % melodyArr.length];
+	length = rhythmArr[clock % rhythmArr.length];
+	playNote(note, length);
+
+	// Print for debug
+	document.getElementById('outputText').innerHTML += "["+note+" "+length+"] ";
+	
+	clock++;
+
+	// if still playing
+	if (playing) {
+		// Play next note after delay
+		delay = (60.0 / bpm) * 1000.0 * length;
+		window.setTimeout(tickClock, delay);
+	}
+}
+
+// Grab and set new speed
+function setBpm() {
+	bpm = document.getElementById('bpm').value;
+
+	// Set the bpm for Tone.js
+	Tone.Transport.bpm.value = bpm;
+}
+
+// Parse text into list of notes, split on comma
+function parseMelody(melodyStr) {
+	tokens = melodyStr.split(",");
+
+	melodyArr = [];
+	for (i = 0; i < tokens.length; ++i) {
+		token = tokens[i].trim()
+		if (token.length > 0) {
+
+			// ends with num? then don't add number
+			if (!"1234567890".includes(token.slice(-1))) {
+				// Doesn't include num, so add number based on case
+				if ("ABCDEFG".includes(token[0])) {
+					// upper case
+					token = token + "4";
+				} else {
+					// lower case
+					token = token + "3";
+				}
+			}
+
+			melodyArr.push(token);
+		}
+	}
+
+	console.log("melody = " + melodyArr);
+}
+
+// Parse text into list of lengths, split on space
+function parseRhythm(melodyStr) {
+	tokens = melodyStr.split(" ");
+
+	rhythmArr = [];
+	for (i = 0; i < tokens.length; ++i) {
+		token = tokens[i].trim()
+		if (token.length > 0) {
+			rhythmArr.push(token);
+		}
+	}
+
+	console.log("rhythm = " + rhythmArr);
+	// TODO: data validation
+}
+
+
+// Grab newly entered rhythm and/or melody values
+function updateContext() {
+	// Parse strings into lists
+	parseRhythm(document.getElementById('rhythm').value);
+	parseMelody(document.getElementById('melody').value);
+
+
+}
+
+function play() {
+	playing = true;
+	clock = 0;
+	setBpm();
+
+	tickClock();
+}
+
+function stop() {
+	playing = false;
+}
+
+
+
+
+</script>
+</head>
+<body onload="initialSetup()">
+<div id="wrapper">
+
+<fieldset>
+	<table>
+		<legend>Inputs</legend>
+		<tr>
+			<td><label>bpm</label></td>
+			<td><input type="number" id="bpm" value="120" oninput="setBpm()"></td>
+		</tr>
+		<tr>
+			<td><label>measure</label></td>
+			<td><input type="number" id="measure" value="16">/16</td>
+		</tr>
+		<tr>
+			<td><label>rhythm</label></td>
+			<td><textarea id="rhythm" oninput="updateContext()"></textarea></td>
+		</tr>
+		<tr>
+			<td><label>melody</label></td>
+			<td><textarea id="melody" oninput="updateContext()"></textarea></td>
+		</tr>
+	</table>
+</fieldset>
+
+<fieldset>
+	<legend>Output</legend>
+
+	<button onclick="play()">play</button>
+	<button onclick="stop()">stop</button>
+	<button onclick="document.getElementById('outputText').innerHTML = ''">[clear output]</button>
+	<hr />
+
+	<div id="outputText"></div>
+</fieldset>
+
+</div>
+</body>
+</html>
