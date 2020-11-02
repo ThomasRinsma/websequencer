@@ -49,6 +49,13 @@ function playNote(note, sixteenths) {
 }
 
 function tickClock() {
+	// if still playing
+	if (playing) {
+		// Play next note after delay
+		delay = ((60.0 / bpm) * 1000.0 * length) / 4.0;
+		window.setTimeout(tickClock, delay);
+	}
+	
 	// Play the note
 	note = melodyArr[clock % melodyArr.length];
 	length = rhythmArr[clock % rhythmArr.length];
@@ -59,12 +66,6 @@ function tickClock() {
 	
 	clock++;
 
-	// if still playing
-	if (playing) {
-		// Play next note after delay
-		delay = ((60.0 / bpm) * 1000.0 * length) / 4.0;
-		window.setTimeout(tickClock, delay);
-	}
 }
 
 function playClick() {
@@ -145,6 +146,8 @@ function play() {
 	updateContext();
 
 	tickClock();
+
+	playClick();
 	clearInterval(clickInterval);
 	clickInterval = window.setInterval(playClick, (60.0 / bpm) * 1000.0);
 }
