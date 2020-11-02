@@ -29,9 +29,11 @@ textarea {
 <script type="text/javascript">
 var clickPlayer;
 var clock = 0;
+var nextPlay = 0;
+var noteIdx = 0;
 var playing = false;
 var bpm;
-var clickInterval;
+var interval;
 
 // the current melody and rhythm, as arrays
 var melodyArr = [];
@@ -48,29 +50,33 @@ function playNote(note, sixteenths) {
 	synth.triggerAttackRelease(note, "0:0:" + sixteenths);
 }
 
-function tickClock() {
-	// if still playing
-	if (playing) {
-		// Play next note after delay
-		delay = ((60.0 / bpm) * 1000.0 * length) / 4.0;
-		window.setTimeout(tickClock, delay);
+function clockSixteenth() {
+
+	if (clock % 4 == 0) {
+		// Play click
+		clickPlayer.start();		
 	}
-	
-	// Play the note
-	note = melodyArr[clock % melodyArr.length];
-	length = rhythmArr[clock % rhythmArr.length];
-	playNote(note, length);
 
-	// Print for debug
-	document.getElementById('outputText').innerHTML += "["+note+" "+length+"]<br/>";
-	
-	clock++;
+	console.log("clock = " + clock + ", nextplay = " + nextPlay);
+	if (clock >= nextPlay) {
+		// Play the note
+		note = melodyArr[noteIdx % melodyArr.length];
+		length = rhythmArr[noteIdx % rhythmArr.length];
+		playNote(note, length);
+		noteIdx++;
 
+		// Print for debug
+		document.getElementById('outputText').innerHTML += "["+note+" "+length+"]<br/>";
+		
+		console.log("length = " + length);
+		nextPlay = clock + (length * 1.0);
+	}
+
+	clock++
 }
 
 function playClick() {
-	// Play click
-	clickPlayer.start();
+	
 }
 
 // Grab and set new speed
@@ -142,20 +148,18 @@ function play() {
 
 	playing = true;
 	clock = 0;
+	noteIdx = 0;
 	setBpm();
 	updateContext();
 
-	tickClock();
-
-	playClick();
-	clearInterval(clickInterval);
-	clickInterval = window.setInterval(playClick, (60.0 / bpm) * 1000.0);
+	clearInterval(interval);
+	interval = window.setInterval(clockSixteenth, ((60.0 / bpm) * 1000.0) / 4.0);
 }
 
 function stop() {
 	playing = false;
 
-	clearInterval(clickInterval);
+	clearInterval(interval);
 }
 
 
