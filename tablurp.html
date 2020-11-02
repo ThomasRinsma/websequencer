@@ -61,7 +61,7 @@ function tickClock() {
 	// if still playing
 	if (playing) {
 		// Play next note after delay
-		delay = (60.0 / bpm) * 1000.0 * length * 4.0;
+		delay = ((60.0 / bpm) * 1000.0 * length) / 4.0;
 		window.setTimeout(tickClock, delay);
 	}
 }
