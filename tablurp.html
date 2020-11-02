@@ -19,6 +19,11 @@ textarea {
 	width: 400px;
 }
 
+#outputText {
+	font-family: monospace;
+	font-size: 9pt;
+}
+
 </style>
 <script type="text/javascript" src="Tone.min.js"></script>
 <script type="text/javascript">
@@ -26,6 +31,7 @@ var clickPlayer;
 var clock = 0;
 var playing = false;
 var bpm;
+var clickInterval;
 
 // the current melody and rhythm, as arrays
 var melodyArr = [];
@@ -43,11 +49,6 @@ function playNote(note, sixteenths) {
 }
 
 function tickClock() {
-	// play click sound every 4 ticks
-	if (clock % 4 == 0) {
-		clickPlayer.start();
-	}
-
 	// Play the note
 	note = melodyArr[clock % melodyArr.length];
 	length = rhythmArr[clock % rhythmArr.length];
@@ -64,6 +65,11 @@ function tickClock() {
 		delay = ((60.0 / bpm) * 1000.0 * length) / 4.0;
 		window.setTimeout(tickClock, delay);
 	}
+}
+
+function playClick() {
+	// Play click
+	clickPlayer.start();
 }
 
 // Grab and set new speed
@@ -129,15 +135,24 @@ function updateContext() {
 }
 
 function play() {
+	if (playing) {
+		return;
+	}
+
 	playing = true;
 	clock = 0;
 	setBpm();
+	updateContext();
 
 	tickClock();
+	clearInterval(clickInterval);
+	clickInterval = window.setInterval(playClick, (60.0 / bpm) * 1000.0);
 }
 
 function stop() {
 	playing = false;
+
+	clearInterval(clickInterval);
 }
 
 
