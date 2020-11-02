@@ -104,7 +104,7 @@ function parseMelody(melodyStr) {
 
 // Parse text into list of lengths, split on space
 function parseRhythm(melodyStr) {
-	tokens = melodyStr.split(" ");
+	tokens = melodyStr.split(",");
 
 	rhythmArr = [];
 	for (i = 0; i < tokens.length; ++i) {
