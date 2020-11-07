@@ -68,6 +68,18 @@ function initialSetup() {
 
 // Helper function
 function playNote(note, sixteenths) {
+	// ends with num? then don't add number
+	if (!"1234567890".includes(note.slice(-1))) {
+		// Doesn't include num, so add number based on case
+		if ("ABCDEFG".includes(note[0])) {
+			// upper case
+			note = note + "4";
+		} else {
+			// lower case
+			note = note + "3";
+		}
+	}
+
 	synthPlayer.triggerAttackRelease(note, "0:0:" + sixteenths);
 }
 
@@ -116,19 +128,6 @@ function parseMelody(melodyStr) {
 	for (i = 0; i < tokens.length; ++i) {
 		token = tokens[i].trim()
 		if (token.length > 0) {
-
-			// ends with num? then don't add number
-			if (!"1234567890".includes(token.slice(-1))) {
-				// Doesn't include num, so add number based on case
-				if ("ABCDEFG".includes(token[0])) {
-					// upper case
-					token = token + "4";
-				} else {
-					// lower case
-					token = token + "3";
-				}
-			}
-
 			melodyArr.push(token);
 		}
 	}
