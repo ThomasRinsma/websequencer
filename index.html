@@ -51,18 +51,13 @@ function initialSetup() {
 	// grab preset from link
 	if (window.location.hash) {
 		var preset = window.location.hash.substring(1);
-
-		// 1,2,3,4-a,b,c,d
-
 		var parts = preset.split('-');
-
-		// Update the internal context
-		parseRhythm(parts[0]);
-		parseMelody(parts[1]);
 
 		// Update the field values
 		document.getElementById('rhythm').value = parts[0];
 		document.getElementById('melody').value = parts[1];
+
+		updateContext();
 	}
 }
 
@@ -143,7 +138,7 @@ function parseRhythm(melodyStr) {
 	for (i = 0; i < tokens.length; ++i) {
 		token = tokens[i].trim()
 		if (token.length > 0) {
-			rhythmArr.push(token);
+			rhythmArr.push(token * 1.0);
 		}
 	}
 
@@ -163,6 +158,13 @@ function updateContext() {
 
 	// Update url hash
 	window.location.hash = '#' + rhythmArr.join(',') + '-' + melodyArr.join(',');
+
+	// Update infos
+	rLen = rhythmArr.reduce((a, b) => a + b, 0);
+	document.getElementById('rhythmLength').innerHTML = rLen;
+
+	mLen = melodyArr.length;
+	document.getElementById('melodyLength').innerHTML = mLen;
 }
 
 function play() {
@@ -212,6 +214,17 @@ function stop() {
 		<tr>
 			<td><label>melody</label></td>
 			<td><textarea id="melody" oninput="updateContext()"></textarea></td>
+		</tr>
+		<tr>
+			<td colspan="2"><hr /></td>
+		</tr>
+		<tr>
+			<td>rhythm length:</td>
+			<td><span id="rhythmLength"></span>/16</td>
+		</tr>
+		<tr>
+			<td>melody length:</td>
+			<td><span id="melodyLength"></span> notes</td>
 		</tr>
 	</table>
 </fieldset>
