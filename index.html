@@ -93,6 +93,59 @@ function playNote(note, sixteenths) {
 	synthPlayer.triggerAttackRelease(note, "0:0:" + sixteenths);
 }
 
+function addNotetoVisual(note, length) {
+	t = document.getElementById('visual');
+
+	// Position within the current bar
+	subBarIdx = (notePos % 16);
+
+	// If we're at the start of a bar, add new row
+	// If we need to split this note, add a new row as well
+	if (subBarIdx == 0 || (subBarIdx + length > 16)) {
+		newrow = document.createElement('tr');
+		t.appendChild(newrow);
+	}
+
+	console.log("subBarIdx = " + subBarIdx + ", length = " + length + ", note = " + note);
+
+	// Do we need to split?
+	if (subBarIdx + length > 16) {
+		currow = t.rows[t.rows.length - 2];
+		newrow = t.rows[t.rows.length - 1];
+
+		// first half
+		cell1 = document.createElement('td');
+		cell2 = document.createElement('td');
+		cell1.id = 'note';
+		cell2.id = 'note';
+		cell1.innerHTML = note;
+		cell2.innerHTML = note;
+		cell1.colSpan = (16 - subBarIdx);
+		cell2.colSpan = length - (16 - subBarIdx);
+
+		// add cells
+		currow.appendChild(cell1);
+		newrow.appendChild(cell2);
+
+	} else {
+		lastrow = t.rows[t.rows.length - 1];
+		cell = document.createElement('td');
+		cell.id = 'note';
+		cell.innerHTML = note;
+		cell.colSpan = length;
+		lastrow.appendChild(cell);
+	}
+}
+
+function clearVisual() {
+	if (!playing) {
+		v = document.getElementById('visual');
+		for (i = 1; i < v.rows.length; ++i) {
+			v.deleteRow(i);
+		}
+	}
+}
+
 function clockSixteenth() {
 
 	if (clock % 4 == 0) {
@@ -113,51 +166,8 @@ function clockSixteenth() {
 		// ---
 
 		// Add visual
-		t = document.getElementById('visual');
+		addNotetoVisual(note, length);
 
-		// Position within the current bar
-		subBarIdx = (notePos % 16);
-
-		// If we're at the start of a bar, add new row
-		// If we need to split this note, add a new row as well
-		if (subBarIdx == 0 || (subBarIdx + length > 16)) {
-			newrow = document.createElement('tr');
-			t.appendChild(newrow);
-		}
-
-		console.log("subBarIdx = " + subBarIdx + ", length = " + length + ", note = " + note);
-
-		// Do we need to split?
-		if (subBarIdx + length > 16) {
-			currow = t.rows[t.rows.length - 2];
-			newrow = t.rows[t.rows.length - 1];
-
-			// first half
-			cell1 = document.createElement('td');
-			cell2 = document.createElement('td');
-			cell1.id = 'note';
-			cell2.id = 'note';
-			cell1.innerHTML = note;
-			cell2.innerHTML = note;
-			cell1.colSpan = (16 - subBarIdx);
-			cell2.colSpan = length - (16 - subBarIdx);
-
-			// add cells
-			currow.appendChild(cell1);
-			newrow.appendChild(cell2);
-
-		} else {
-			lastrow = t.rows[t.rows.length - 1];
-			cell = document.createElement('td');
-			cell.id = 'note';
-			cell.innerHTML = note;
-			cell.colSpan = length;
-			lastrow.appendChild(cell);
-		}
-
-
-
-		// ---
 		notePos += length;
 		nextPlay = clock + (length * 1.0);
 	}
@@ -248,8 +258,8 @@ function play() {
 
 function stop() {
 	playing = false;
-
 	clearInterval(interval);
+	clearVisual();
 }
 
 
@@ -298,7 +308,6 @@ function stop() {
 
 	<button onclick="play()">play</button>
 	<button onclick="stop()">stop</button>
-	<button onclick="document.getElementById('outputText').innerHTML = ''">[clear output]</button>
 	<hr />
 
 	<table id="visual">
