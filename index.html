@@ -50,7 +50,7 @@ function initialSetup() {
 
 	// grab preset from link
 	if (window.location.hash) {
-		var preset = window.location.hash.substring(1);
+		var preset = decodeURIComponent(window.location.hash.substring(1));
 		var parts = preset.split('-');
 
 		// Update the field values
@@ -157,7 +157,7 @@ function updateContext() {
 	parseMelody(m);
 
 	// Update url hash
-	window.location.hash = '#' + rhythmArr.join(',') + '-' + melodyArr.join(',');
+	window.location.hash = '#' + encodeURIComponent(rhythmArr.join(',') + '-' + melodyArr.join(','));
 
 	// Update infos
 	rLen = rhythmArr.reduce((a, b) => a + b, 0);
