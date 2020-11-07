@@ -24,12 +24,27 @@ textarea {
 	font-size: 9pt;
 }
 
+#visual {
+	font-family: monospace;
+	font-size: 9pt;
+}
+#visual td, th {
+	width: 40px;
+	border: 1px solid black;
+	text-align: center;
+}
+#visual td#note{
+	background-color: lightgreen;
+}
+
+
 </style>
 <script type="text/javascript" src="Tone.min.js"></script>
 <script type="text/javascript">
 var clock = 0;
 var nextPlay = 0;
 var noteIdx = 0;
+var notePos = 0;
 var playing = false;
 var bpm;
 var interval;
@@ -85,7 +100,6 @@ function clockSixteenth() {
 		clickPlayer.start();		
 	}
 
-	console.log("clock = " + clock + ", nextplay = " + nextPlay);
 	if (clock >= nextPlay) {
 		// Play the note
 		note = melodyArr[noteIdx % melodyArr.length];
@@ -94,9 +108,57 @@ function clockSixteenth() {
 		noteIdx++;
 
 		// Print for debug
-		document.getElementById('outputText').innerHTML += "["+note+" "+length+"]<br/>";
-		
-		console.log("length = " + length);
+		//document.getElementById('outputText').innerHTML += "["+note+" "+length+"]<br/>";
+
+		// ---
+
+		// Add visual
+		t = document.getElementById('visual');
+
+		// Position within the current bar
+		subBarIdx = (notePos % 16);
+
+		// If we're at the start of a bar, add new row
+		// If we need to split this note, add a new row as well
+		if (subBarIdx == 0 || (subBarIdx + length > 16)) {
+			newrow = document.createElement('tr');
+			t.appendChild(newrow);
+		}
+
+		console.log("subBarIdx = " + subBarIdx + ", length = " + length + ", note = " + note);
+
+		// Do we need to split?
+		if (subBarIdx + length > 16) {
+			currow = t.rows[t.rows.length - 2];
+			newrow = t.rows[t.rows.length - 1];
+
+			// first half
+			cell1 = document.createElement('td');
+			cell2 = document.createElement('td');
+			cell1.id = 'note';
+			cell2.id = 'note';
+			cell1.innerHTML = note;
+			cell2.innerHTML = note;
+			cell1.colSpan = (16 - subBarIdx);
+			cell2.colSpan = length - (16 - subBarIdx);
+
+			// add cells
+			currow.appendChild(cell1);
+			newrow.appendChild(cell2);
+
+		} else {
+			lastrow = t.rows[t.rows.length - 1];
+			cell = document.createElement('td');
+			cell.id = 'note';
+			cell.innerHTML = note;
+			cell.colSpan = length;
+			lastrow.appendChild(cell);
+		}
+
+
+
+		// ---
+		notePos += length;
 		nextPlay = clock + (length * 1.0);
 	}
 
@@ -176,6 +238,7 @@ function play() {
 	clock = 0;
 	nextPlay = 0;
 	noteIdx = 0;
+	notePos = 0;
 	setBpm();
 	updateContext();
 
@@ -237,6 +300,15 @@ function stop() {
 	<button onclick="stop()">stop</button>
 	<button onclick="document.getElementById('outputText').innerHTML = ''">[clear output]</button>
 	<hr />
+
+	<table id="visual">
+	<tr>
+		<th>1</th><th>2</th><th>3</th><th>4</th>
+		<th>1</th><th>2</th><th>3</th><th>4</th>
+		<th>1</th><th>2</th><th>3</th><th>4</th>
+		<th>1</th><th>2</th><th>3</th><th>4</th>
+	</tr>
+	</div>
 
 	<div id="outputText"></div>
 </fieldset>
