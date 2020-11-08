@@ -156,7 +156,9 @@ function addNotetoVisual(note, length) {
 		cell1.innerHTML = note;
 		cell2.innerHTML = note;
 		cell1.style.backgroundColor = getColorForNote(note);
+		cell1.style.borderRight = "none";
 		cell2.style.backgroundColor = getColorForNote(note);
+		cell2.style.borderLeft = "none";
 		cell1.colSpan = (16 - subBarIdx);
 		cell2.colSpan = length - (16 - subBarIdx);
 
