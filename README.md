@@ -1,3 +1,3 @@
 # Websequencer aka Tablurp
 
-todo write readme
+Live at: https://heuristic-clarke-8a3f13.netlify.app/
