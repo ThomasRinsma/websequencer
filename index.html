@@ -93,6 +93,41 @@ function playNote(note, sixteenths) {
 	synthPlayer.triggerAttackRelease(note, "0:0:" + sixteenths);
 }
 
+function getColorForNote(note) {
+	switch (note[0].toLowerCase()) {
+		case "a":
+			color = "pink";
+			break;
+		case "b":
+			color = "green";
+			break;
+		case "c":
+			color = "red";
+			break;
+		case "d":
+			color = "yellow";
+			break;
+		case "e":
+			color = "coral";
+			break;
+		case "f":
+			color = "orange";
+			break;
+		case "g":
+			color = "cyan";
+			break;
+		default:
+			color = "gray";
+			break;
+	}
+
+	if (note.includes("#")) {
+		color = "light" + color;
+	}
+
+	return color;
+}
+
 function addNotetoVisual(note, length) {
 	t = document.getElementById('visual');
 
@@ -120,6 +155,8 @@ function addNotetoVisual(note, length) {
 		cell2.id = 'note';
 		cell1.innerHTML = note;
 		cell2.innerHTML = note;
+		cell1.style.backgroundColor = getColorForNote(note);
+		cell2.style.backgroundColor = getColorForNote(note);
 		cell1.colSpan = (16 - subBarIdx);
 		cell2.colSpan = length - (16 - subBarIdx);
 
@@ -132,17 +169,16 @@ function addNotetoVisual(note, length) {
 		cell = document.createElement('td');
 		cell.id = 'note';
 		cell.innerHTML = note;
+		cell.style.backgroundColor = getColorForNote(note);
 		cell.colSpan = length;
 		lastrow.appendChild(cell);
 	}
 }
 
 function clearVisual() {
-	if (!playing) {
-		v = document.getElementById('visual');
-		for (i = 1; i < v.rows.length; ++i) {
-			v.deleteRow(i);
-		}
+	v = document.getElementById('visual');
+	for (i = v.rows.length - 1; i >= 0; --i) {
+		v.deleteRow(i);
 	}
 }
 
